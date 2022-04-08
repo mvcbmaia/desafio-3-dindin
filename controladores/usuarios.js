@@ -63,7 +63,7 @@ const login = async (req, res) => {
             case securePassword.INVALID_UNRECOGNIZED_HASH:
 
             case securePassword.INVALID:
-                return res.status(400).json('Email ou senha incorretos!')
+                return res.status(400).json({ "mensagem": "Email ou senha incorretos!" })
 
             case securePassword.VALID:
                 break;
@@ -83,7 +83,8 @@ const login = async (req, res) => {
             nome: usuario.nome,
             email: usuario.email
         }, jwtSecret, {
-            expiresIn: "1h"
+            expiresIn: "10000h"
+            //diminuir para uma hora no final
         });
 
         return res.send({
@@ -101,10 +102,22 @@ const login = async (req, res) => {
 }
 
 const detalharUsuario = async (req, res) => {
-    const token = req.rawHeaders[5];
+    const { usuario } = req;
 
-    const semBearer = token.split(" ");
-    console.log(semBearer[1]);
+    try {
+        const query = 'select * from usuarios where id=$1';
+        const cliente = conexao.query(query, [usuario.id]);
+        return res.status(200).json({
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email
+        });
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
+const editarUsuario = async (req, res) => {
 
 }
 
@@ -113,5 +126,6 @@ const detalharUsuario = async (req, res) => {
 module.exports = {
     cadastrarUsuario,
     login,
-    detalharUsuario
+    detalharUsuario,
+    editarUsuario
 }
