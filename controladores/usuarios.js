@@ -118,7 +118,37 @@ const detalharUsuario = async (req, res) => {
 }
 
 const editarUsuario = async (req, res) => {
+    const { nome, email, senha } = req.body;
+    const { usuario } = req;
 
+    if (!nome || !email || !senha) {
+        return res.status(400).json({ "mensagem": "Todos os campos são obrigatórios!" });
+    }
+    try {
+        const query = 'select * from usuarios where email=$1';
+        const usuario = await conexao.query(query, [email]);
+
+        if (usuario.rowCount > 0) {
+            return res.status(400).json({ "mensagem": "Já existe usuário cadastrado com o e-mail informado." });
+        }
+
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+    try {
+        const hash = (await pwd.hash(Buffer.from(senha))).toString('hex');
+        const query = 'update usuarios set nome = $1, email = $2, senha = $3 where id = $4';
+        const cliente = await conexao.query(query, [nome, email, hash, usuario.id]);
+
+        if (cliente.rowCount === 0) {
+            return res.status(400).json({ "mensagem": "Não foi possível autualizar o usuário" });
+        }
+
+        return res.status(200).json({ "mensagem": "Usuário atualizado com sucesso!" })
+
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
 }
 
 

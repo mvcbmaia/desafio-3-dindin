@@ -14,5 +14,7 @@ rotas.use(verificarLogin);
 rotas.get('/usuario', usuarios.detalharUsuario);
 rotas.put('/usuario', usuarios.editarUsuario);
 
+rotas.get('/categoria', categorias.listarCategorias);
+
 module.exports = rotas;
 
