@@ -16,5 +16,12 @@ rotas.put('/usuario', usuarios.editarUsuario);
 
 rotas.get('/categoria', categorias.listarCategorias);
 
+rotas.get('/transacao', transacoes.listarTransacoes);
+rotas.get('/transacao/extrato', transacoes.obterExtrato);
+rotas.get('/transacao/:id', transacoes.detalharTransacao);
+rotas.post('/transacao', transacoes.cadastrarTransacao);
+rotas.put('/transacao/:id', transacoes.editarTransacao);
+rotas.delete('/transacao/:id', transacoes.removerTransacao);
+
 module.exports = rotas;
 
