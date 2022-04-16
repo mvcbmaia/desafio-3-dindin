@@ -33,7 +33,10 @@ const cadastrarUsuario = async (req, res) => {
             return res.status(400).json({ "mensagem": "Não foi possível cadastrar usuário" });
         }
 
-        return res.status(200).json({ "mensagem": "Usuário Cadastrado com Sucesso!" })
+        const querySelect = 'Select * from usuarios where email = $1';
+        const select = await conexao.query(querySelect, [email]);
+
+        return res.status(200).json({ "id": select.rows[0].id, "nome": select.rows[0].nome, "email": select.rows[0].email })
 
     } catch (error) {
         return res.status(400).json(error.message);
@@ -83,8 +86,7 @@ const login = async (req, res) => {
             nome: usuario.nome,
             email: usuario.email
         }, jwtSecret, {
-            expiresIn: "10000h"
-            //diminuir para uma hora no final
+            expiresIn: "1h"
         });
 
         return res.send({

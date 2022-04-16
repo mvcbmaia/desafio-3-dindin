@@ -6,27 +6,44 @@ const listarTransacoes = async (req, res) => {
     const query = 'select * from transacoes where usuario_id=$1';
     const transacoes = await conexao.query(query, [usuario.id]);
 
+    return res.status(200).json(transacoes.rows);
+
 
 }
 
 const detalharTransacao = async (req, res) => {
     const { id } = req.params;
+    const { usuario } = req;
+
     const query = 'Select * from transacoes where id=$1';
     const transacao = await conexao.query(query, [id]);
+
+    console.log(transacao);
 
     try {
         if (transacao.rowCount === 0) {
             return res.status(404).json({ "mensagem": "Transação não encontrada." });
         }
 
-        return res.status(200).json(transacao.rows);
+        const queryCategoria = 'select descricao from categorias where id=$1';
+        const categoriaNome = await conexao.query(queryCategoria, [transacao.rows[0].categoria_id]);
+
+        return res.status(200).json({
+            id: transacao.rows[0].id,
+            tipo: transacao.rows[0].tipo,
+            descricao: transacao.rows[0].descricao,
+            valor: transacao.rows[0].valor,
+            data: transacao.rows[0].data,
+            usuario_id: usuario.id,
+            categoria_id: transacao.rows[0].categoria_id,
+            categoria_nome: categoriaNome.rows[0].descricao
+        });
 
     } catch (error) {
         return res.status(400).json(error.message);
     }
 
 
-    return res.status(200).json(transacao.rows);
 }
 
 const cadastrarTransacao = async (req, res) => {
@@ -37,7 +54,7 @@ const cadastrarTransacao = async (req, res) => {
         return res.status(400).json({ "mensagem": "Todos os campos obrigatórios devem ser informados." });
     }
 
-    if (tipo !== 'entrada' && tipo !== 'saída') {
+    if (tipo !== 'entrada' && tipo !== 'saida') {
         return res.status(400).json({ "mensagem": "Tipo de transação informado é inválido" })
     }
 
@@ -90,7 +107,7 @@ const editarTransacao = async (req, res) => {
         return res.status(400).json({ "mensagem": "Todos os campos obrigatórios devem ser informados." });
     }
 
-    if (tipo !== 'entrada' && tipo !== 'saída') {
+    if (tipo !== 'entrada' && tipo !== 'saida') {
         return res.status(400).json({ "mensagem": "Tipo de transação informado é inválido" })
     }
 
@@ -112,6 +129,10 @@ const editarTransacao = async (req, res) => {
 
         const querySelect = 'select * from transacoes where id=$1';
         const consultaId = await conexao.query(querySelect, [id]);
+
+        if (consultaId.rowCount === 0) {
+            return res.status(400).json({ "mensagem": "A transação informada não existe" });
+        }
 
         if (consultaId.rows[0].usuario_id !== usuario.id) {
             return res.status(400).json({ "mensagem": "Transação não corresponde ao usuário" })
@@ -162,7 +183,7 @@ const obterExtrato = async (req, res) => {
     try {
         const query = 'select valor from transacoes where tipo =$1 and usuario_id=$2';
         const entrada = await conexao.query(query, ['entrada', usuario.id]);
-        const saida = await conexao.query(query, ['saída', usuario.id]);
+        const saida = await conexao.query(query, ['saida', usuario.id]);
 
         let valorEntrada = 0;
         for (let valor of entrada.rows) {
@@ -176,7 +197,7 @@ const obterExtrato = async (req, res) => {
 
         return res.status(200).json({
             "entrada": valorEntrada,
-            "saída": valorSaida
+            "saida": valorSaida
         });
 
     } catch (error) {
